@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         All X Images
+// @name         All X(Twitter) Images
 // @namespace    http://tampermonkey.net/
-// @version      2024-08-22
+// @version      1.2
 // @description  Download all original images on X media time-line
 // @author       Jimmy Chen
 // @match        https://x.com/*/media*
@@ -9,13 +9,18 @@
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=x.com
 // @grant        GM_download
 // @run-at       document-idle
+// @license      MIT
 
+
+// @downloadURL https://update.greasyfork.org/scripts/504792/All%20X%28Twitter%29%20Images.user.js
+// @updateURL https://update.greasyfork.org/scripts/504792/All%20X%28Twitter%29%20Images.meta.js
 // ==/UserScript==
 
 let user = '';
 let lastHeight = 0;
 let observer = new MutationObserver(resetTimer);
-let timer = setTimeout(action, 3000, observer);
+let timer = setTimeout(action, 2000, observer);
+clearTimeout(timer);
 let images = {};
 
 function addButton(text, onclick, cssObj, id) {
@@ -36,25 +41,26 @@ function addButton(text, onclick, cssObj, id) {
 
 function resetTimer(changes, observer) {
     clearTimeout(timer);
-    timer = setTimeout(action, 3000, observer);
-    console.log("change detected. document height: " + document.body.scrollHeight);
-
+    timer = setTimeout(action, 2000, observer);
 }
 
 function scrollToBottom() {
-    console.log("scroll to " + document.body.scrollHeight);
-    window.scrollTo(0, document.body.scrollHeight);
+    window.scrollBy(0, window.innerHeight);
+    //console.log("scroll to " + window.scrollY);
+    //console.log("document height: " + document.body.scrollHeight);
 }
 
 function action(observer) {
-    scrollToBottom()
-    if (lastHeight === document.body.scrollHeight) {
+    getImageUrl();
+    scrollToBottom();
+    let currentHeight = window.scrollY + window.innerHeight;
+    //console.log("current: " + currentHeight);
+    if (currentHeight >= document.body.scrollHeight) {
         observer.disconnect();
         downloadAllImgs();
         return;
     }
-    lastHeight = document.body.scrollHeight;
-    getImageUrl();
+    lastHeight = window.scrollHeight;
 }
 
 function getImageUrl() {
@@ -69,6 +75,7 @@ function getImageUrl() {
 }
 
 function downloadAllImgs() {
+    console.log("total images: " + Object.keys(images).length);
     Object.keys(images).forEach(key => {
         GM_download(images[key], key);
     });
